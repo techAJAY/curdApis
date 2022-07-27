@@ -31,17 +31,37 @@ exports.createProduct = async (req, res) => {
 
 //-----get api allproduct -----//
 
+// exports.getAllproduct = async (req, res) => {
+//     try {
+//         const getalldata = await productModel.find()
+//         res.status(200).send({ status: true, data: getalldata })
+//     }
+//     catch (err) {
+//         res.status(500).send({ status: false, msg: err })
+//     }
+// }
+
+
 exports.getAllproduct = async (req, res) => {
-    try {
+        try {
 
-        const getalldata = await productModel.find()
-        res.status(200).send({ status: true, data: getalldata })
+            if(req.query.category){
+                const  filterData = await productModel.find({category:req.query.category}).select({_id:0,__v:0})
+                if(filterData){
+                    res.status(200).send({ data: filterData })
+                }
+            }
+            else{
+                const  getalldata = await productModel.find()
+                res.status(200).send({ status: true, data: getalldata })
+            }
+            
+            
+        }
+        catch (err) {
+            res.status(500).send({ status: false, msg: err })
+        }
     }
-    catch (err) {
-        res.status(500).send({ status: false, msg: err })
-    }
-}
-
 
 
 
