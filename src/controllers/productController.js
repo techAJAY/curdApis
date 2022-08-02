@@ -46,7 +46,7 @@ exports.getAllproduct = async (req, res) => {
         try {
 
             if(req.query.category){
-                const  filterData = await productModel.find({category:req.query.category}).select({_id:0,__v:0})
+                const  filterData = await productModel.find({category:req.query.category})
                 if(filterData){
                     res.status(200).send({ data: filterData })
                 }
@@ -62,8 +62,6 @@ exports.getAllproduct = async (req, res) => {
             res.status(500).send({ status: false, msg: err })
         }
     }
-
-
 
 
 

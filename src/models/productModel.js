@@ -7,7 +7,7 @@ const productSchema = new mongoose.Schema({
           required:[true,'product name is required'],
           trim:true
     },
-
+    
     category:{
         type:String,
         required:[true,'product category is required']
@@ -19,7 +19,7 @@ const productSchema = new mongoose.Schema({
     },
     price:{
         type:Number,
-        required:[true,'product price is required']
+        required:[true,'product price is required']            
     },
 },
 {timestamps:true});
