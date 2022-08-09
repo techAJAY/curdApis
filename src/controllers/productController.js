@@ -1,5 +1,6 @@
 const productModel = require("../models/productModel")
 const mongoose  = require('mongoose')
+const { request } = require("express")
 
 //it check objectid type
 const isValidObjectId = function(objectId) {             
@@ -12,16 +13,31 @@ const isValidObjectId = function(objectId) {
 
 //-------post api---------//
 
-
+ 
 exports.createProduct = async (req, res) => {
     try {
-        const requestData = req.body;
-        const responseData = await productModel.create(requestData)
-        console.log(responseData);
-        res.status(201).send({ status: true, msg: "data create succesfully", data: responseData })
+
+         const requestData = req.body;
+         const imageFile = req.files.image;
+
+
+         const responseData = await productModel.create({...requestData,userId:req.user._id,image:imageFile})
+
+         cloudinary.uploader.upload(imageFile.ajay, function(result){
+            if (result.url) { 
+                res.status(200).send({url: result.url});
+            }else {
+              console.log('Error uploading to cloudinary');
+           }
+          });
+
+         await responseData.save()
+
+         res.status(201).send({ status: true, msg: "data create succesfully", data: responseData })
     }
     catch (err) {
-        res.status(500).send({ status: false, msg: err })
+         console.log(err);
+         res.status(500).json({message:err.message})
     }
 }
 
@@ -29,31 +45,23 @@ exports.createProduct = async (req, res) => {
 
 
 
-//-----get api allproduct -----//
 
-// exports.getAllproduct = async (req, res) => {
-//     try {
-//         const getalldata = await productModel.find()
-//         res.status(200).send({ status: true, data: getalldata })
-//     }
-//     catch (err) {
-//         res.status(500).send({ status: false, msg: err })
-//     }
-// }
-
+//get api for all product
 
 exports.getAllproduct = async (req, res) => {
         try {
-
+    
             if(req.query.category){
-                const  filterData = await productModel.find({category:req.query.category})
+                const  filterData = await productModel.findOne({category:req.query.category,userId:req.user._id})
+
                 if(filterData){
                     res.status(200).send({ data: filterData })
                 }
             }
             else{
-                const  getalldata = await productModel.find()
-                res.status(200).send({ status: true, data: getalldata })
+                const  getalldata = await productModel.findOne({userId:req.user._id})
+    
+                res.status(200).send({ data: getalldata })
             }
             
             
@@ -69,21 +77,20 @@ exports.getAllproduct = async (req, res) => {
 //-------get api for single product ---------//
 
 
-exports.getOneproduct = async (req, res) => {
+ exports.getOneproduct = async (req, res) => {
     try{
+
         const requestData = req.params.id;
             if(!isValidObjectId(requestData)) {      
               return res.status(400).send({status: false, message: `${requestData} is not a valid user id`})
             
              }
-              const responseData = await productModel.findById({ _id: requestData })
+              const responseData = await productModel.findOne({ _id:requestData ,userId:req.user._id})
               if(responseData){
                 return res.status(200).send({ status: true, data:responseData })
               }
-              res.status(404).send({ status:false,msg:"product not exist or already deleted"})
+              res.status(404).send({ status:false,msg:"product not exist"})
             
-    
-           
     }catch(err){
         return res.status(500).send(err.message)
     }
@@ -108,21 +115,24 @@ exports.updateProduct = async (req, res) => {
             return res.status(400).send({status: false, message: `${productId} is not a valid user id`})
           
            }
-                const responseData = await productModel.findOne({ _id:productId })
-                console.log(responseData);
+                const responseData = await productModel.findOne({ _id:productId,userId:req.user._id})
+            
                 if(!responseData){
-                    res.status(404).send({ status: false, msg:"product not exist or already deleted" })
+                    return res.status(404).send({ status: false, msg:"product not exist" })
                     
                 }
                 
                     const updateData = await productModel.findByIdAndUpdate(responseData, requestData, { new: true })
+                    await updateData.save()
+
                     console.log(updateData);
-                    res.status(200).send({ status: true, msg: "data update sucessfully",data: updateData })
+                    return res.status(200).send({ status: true, msg: "data update sucessfully",data: updateData })
                 
                             
                  
     }
     catch (err) {
+        console.log(err);
         return res.status(500).send(err.message)
     }
 }
@@ -143,17 +153,14 @@ exports.deleteProduct = async (req, res) => {
           
            }
 
-          const productData =  await productModel.findById(requestData)
+          const productData =  await productModel.findByIdAndDelete({_id:requestData,userId:req.user._id})
           if(!productData){
             return res.status(400).json({ status: false, msg:'product not exist or already deleted' })
           }
 
-          else{
-            await productModel.remove(productData)
-            return res.status(200).json({ status: true, msg: "product delete sucessfully" }) 
-          }
           
-
+            return res.status(200).json({msg: "product deleted sucessfully" }) 
+            
     } catch (err) {
         return res.status(500).send(err.message)
     }
