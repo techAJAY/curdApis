@@ -24,6 +24,10 @@ app.use(multer().any())
 
 connectDatabase();
 
+app.use("/",async (req,res)=>{
+  res.send("simple curd apis")
+})
+
 app.post('/profile', upload.single('avatar'), function (req, res, next) {
     // req.file is the `avatar` file
     // req.body will hold the text fields, if there were any
@@ -38,7 +42,7 @@ app.post('/profile', upload.single('avatar'), function (req, res, next) {
 
 
 app.listen(process.env.port || 3000,()=>{
-    console.log('connected with port:' +(process.env.port || 3000))
+    console.log('connected with port' +(process.env.port || 3000))
 });
 
 
