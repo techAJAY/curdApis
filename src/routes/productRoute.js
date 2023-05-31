@@ -5,7 +5,7 @@ const {isAuth} = require('../middleware/auth')
 
 //all apis
 router.post('/createProduct',isAuth,productController.createProduct)
-router.get('/getProduct',isAuth,productController.getAllproduct)
+router.get('/getProduct',productController.getAllproduct)
 router.get('/getProduct/:id',isAuth,productController.getOneproduct)
 router.put('/updateProduct/:id',isAuth,productController.updateProduct)
 router.delete('/deleteProduct/:id',isAuth,productController.deleteProduct)
